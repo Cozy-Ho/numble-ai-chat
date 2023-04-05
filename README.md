@@ -1,38 +1,31 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 구현 조건
 
-## Getting Started
+- ES6 이상 문법 사용
+- 스타일 관련 라이브러리 사용 자유, 그 외에 라이브러리 사용은 자제
+- API 요청에 대한 테스트 코드 작성
+- 컴포넌트에 대한 스토리북 작성
 
-First, run the development server:
+# 구현 설명
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- 초기 설정
+  - API KEY를 첫 화면에서 입력 받습니다.
+  - 저장 누르고 로그인을 할 때 유효한 API KEY인지 확인하고 넘어갑니다.
+- 채팅방
+  - 방 생성
+    - 방 이름과 인원을 설정해서 생성 가능하도록 합니다.
+    - 방 이름은 2~10글자 사이, 방 인원은 2명~5명으로 해주세요. (본인 포함 인원으로 진행해주세요)
+  - 방 나가기
+    - 생성된 방 리스트에서 우측 3dot을 클릭해서 ‘나가기’ 클릭 후 나갈 수 있게 합니다.
+  - 방 설정 수정
+    - 생성된 방 리스트에서 우측 3dot을 클릭해서 ‘수정’ 클릭 후 방 이름과 인원 재설정 가능합니다.
+- 채팅 메시지
+  - 첫 대화는 사람이 먼저 보냅니다.
+  - 첫 메시지 이후에 AI가 ChatGPT를 통해 답장을 보내도록 합니다.
+  - 대화방에 들어가있는 경우에만 AI끼리도 대화해야하며 나간 경우에는 동작하지 않습니다.
+  - 채팅방에서 본인과 AI의 프로필 이미지와 닉네임은 몇개의 후보 목록 저장 후 랜덤으로 사용해주세요.
+  - 본인은 오른쪽 메시지로 뜨고 다른 사람들은 다 왼쪽에 보여지도록 해주세요. (일반적인 단체 채팅방처럼)
+  - 메시지에는 시간 24시간 (HH:MM) 표시해주세요.
+  - 메시지에 대해서는 답장이나 삭제의 다른 기능은 없습니다.
+- 채팅 오류상황
+  - 사용자의 API 사용량 초과로 에러가 발생하는 경우 대화방 전체 일시중지 시켜주세요.
+  - 그 외 이슈가 발생한 경우 발생한 채팅방에서 더 이상 호출은 멈추고 다시 대화방 진입하면 다시 호출을 시도하세요.

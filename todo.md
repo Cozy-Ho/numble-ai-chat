@@ -1,0 +1,5 @@
+- [ ] Next.js document 정독
+- [ ] Open AI document 정독
+- [ ] 프로젝트 기본 구조 설계
+- [ ] Use-case & test-case 작성
+- [ ] 필요한 API 정리
