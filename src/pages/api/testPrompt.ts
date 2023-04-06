@@ -25,11 +25,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   const request = req.body.prompt;
-  if (!request || request.length === 0) {
-    res.status(400).json({
-      error: {
-        message: "Please enter a valid animal"
-      }
+  if (!request || request.length <= 5) {
+    res.status(200).json({
+      result: "Please enter a valid input"
     });
     return;
   }

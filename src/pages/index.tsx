@@ -39,12 +39,13 @@ export default function Home() {
       <input
         type="text"
         value={inputText}
+        multiple={true}
+        onChange={e => setInputText(e.target.value)}
         style={{
           width: 300,
           height: 42,
           marginTop: 16
         }}
-        onChange={e => setInputText(e.target.value)}
       />
 
       <button
