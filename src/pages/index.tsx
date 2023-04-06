@@ -30,7 +30,9 @@ export default function Home() {
     <div
       style={{
         display: "flex",
-        flexDirection: "column"
+        flexDirection: "column",
+        justifyContent: "center",
+        alignContent: "center"
       }}
     >
       <div>hello next.js</div>
@@ -39,6 +41,7 @@ export default function Home() {
         value={inputText}
         style={{
           width: 300,
+          height: 42,
           marginTop: 16
         }}
         onChange={e => setInputText(e.target.value)}
@@ -56,7 +59,8 @@ export default function Home() {
       </button>
       <div
         style={{
-          marginTop: 16
+          marginTop: 16,
+          width: 600
         }}
       >{`result : ${result}`}</div>
     </div>
