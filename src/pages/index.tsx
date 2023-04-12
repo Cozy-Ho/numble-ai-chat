@@ -12,9 +12,7 @@ import { useRouter } from "next/router";
 export default function Home() {
   const router = useRouter();
 
-  const [apiKey, setApiKey] = useState<string>(
-    "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",
-  );
+  const [apiKey, setApiKey] = useState<string>("");
   const [error, setError] = useState<string | boolean>(false);
 
   const handleLogin = async () => {
