@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { Configuration, OpenAIApi } from "openai";
 
 const configuration = new Configuration({
-  apiKey: process.env.NEXT_PUBLIC_CF_OPEN_AI_API_KEY
+  apiKey: process.env.NEXT_PUBLIC_CF_OPEN_AI_API_KEY,
 });
 
 const openai = new OpenAIApi(configuration);
@@ -14,12 +14,16 @@ type Data = {
   };
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse<Data>,
+) {
   if (!configuration.apiKey) {
     res.status(500).json({
       error: {
-        message: "OpenAI API key not configured, please follow instructions in README.md"
-      }
+        message:
+          "OpenAI API key not configured, please follow instructions in README.md",
+      },
     });
     return;
   }
@@ -27,7 +31,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const request = req.body.prompt;
   if (!request || request.length <= 5) {
     res.status(200).json({
-      result: "Please enter a valid input"
+      result: "Please enter a valid input",
     });
     return;
   }
@@ -36,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     const completion = await openai.createCompletion({
       model: "text-davinci-003",
       prompt: request,
-      max_tokens: 1024
+      max_tokens: 1024,
     });
     console.log("# gpt says : ", completion.data);
     res.status(200).json({ result: completion.data.choices[0].text });
@@ -49,8 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
       console.error(`Error with OpenAI API request: ${error.message}`);
       res.status(500).json({
         error: {
-          message: "An error occurred during your request."
-        }
+          message: "An error occurred during your request.",
+        },
       });
     }
   }
