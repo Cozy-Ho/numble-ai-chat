@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import Container from "./Container";
 import Button from "./Button";
-import { AddIcon, CloseIcon } from "../Icons";
+import { CloseIcon } from "../Icons";
 
 const StyledDialogBackdrop = styled("div")({
   position: "fixed",

@@ -39,6 +39,11 @@ export default function Home() {
       setError("KEY가 올바르지 않습니다.");
     }
   };
+
+  const handleClickHowtoGenerateKey = () => {
+    window.open("https://platform.openai.com/docs/quickstart/add-your-api-key");
+  };
+
   return (
     <MainLayout>
       <Container
@@ -95,6 +100,7 @@ export default function Home() {
               style={{
                 cursor: "pointer",
               }}
+              onClick={handleClickHowtoGenerateKey}
             >
               {"KEY 발급 받는법"}
             </Typography>
