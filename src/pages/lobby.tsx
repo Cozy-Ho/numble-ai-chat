@@ -1,7 +1,19 @@
-import { Button, Container, MainLayout, Typography } from "@/components/Common";
-import { AddIcon, Logo, LogoText } from "@/components/Icons";
+import { Button, Container, MainLayout } from "@/components/Common";
+import Divider from "@/components/Common/Divider";
+import { AddIcon, LogoText } from "@/components/Icons";
+import AddChatDialog from "@/components/Lobby/AddChatDialog";
+import { useState } from "react";
 
 const Lobby = () => {
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
+
+  const handleClickAddChat = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
   //
   return (
     <MainLayout>
@@ -9,7 +21,6 @@ const Lobby = () => {
         direction={"column"}
         fullWidth
         fullHeight
-        padding={16}
         style={{
           position: "relative",
         }}
@@ -18,17 +29,19 @@ const Lobby = () => {
           justifyContent={"space-between"}
           fullWidth
           alignItems={"center"}
-          style={{
-            borderBottom: `1px solid #393939`,
-          }}
+          padding={12}
         >
           <LogoText />
-          <Button variant={"icon"}>
+          <Button variant={"icon"} onClick={handleClickAddChat}>
             <AddIcon />
           </Button>
         </Container>
-        <div>This is lobby</div>
+        <Divider direction={"row"} size={"100%"} />
+        <div>chat list here</div>
       </Container>
+      {openDialog && (
+        <AddChatDialog open={openDialog} onClose={handleCloseDialog} />
+      )}
     </MainLayout>
   );
 };

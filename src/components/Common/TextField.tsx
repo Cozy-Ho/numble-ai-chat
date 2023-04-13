@@ -23,9 +23,10 @@ const StyledFieldSet = styled("fieldset")<{
   error?: string | boolean;
 }>(({ theme, width = "100%", height = "100%", focus, error = false }) => ({
   display: "flex",
+  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  padding: 4,
+  padding: "4px 8px",
   margin: 0,
   width: width,
   height: height,
@@ -50,7 +51,7 @@ const StyledInputField = styled("input")<{
   outline: "none",
   resize: "none",
   color: "white",
-  fontSize: 24,
+  fontSize: 18,
   fontWeight: 400,
   lineHeight: "normal",
   letterSpacing: "normal",
@@ -84,10 +85,12 @@ const TextField = (props: TextFieldProps) => {
     onFocus(e);
   };
 
+  console.log("# check here : ", height);
+
   return (
     <StyledFieldSet focus={focus} width={width} height={height} error={error}>
       <StyledInputField
-        color={""}
+        height={height}
         textDirection={textDirection}
         onFocus={onInputFocus}
         onBlur={e => {
