@@ -41,7 +41,7 @@ export default function Home() {
   };
 
   const handleClickHowtoGenerateKey = () => {
-    window.open("https://platform.openai.com/docs/quickstart/add-your-api-key");
+    window.open("https://platform.openai.com/account/api-keys");
   };
 
   return (
