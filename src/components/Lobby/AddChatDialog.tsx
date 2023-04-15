@@ -20,26 +20,43 @@ const AddChatDialog = (props: AddChatDialogProps) => {
 
   const handleChangeChatMember = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-
+    const parsedvalue = parseInt(value);
     if (value === "") {
       setChatMember(0);
       return;
     }
-    try {
-      const number = Number(value);
-      if (number < 2) {
-        setChatMember(2);
-        return;
-      }
-      if (number > 10) {
-        setChatMember(10);
-        return;
-      }
-      setChatMember(number);
-    } catch (e) {
-      console.log("error", e);
-      setChatMember(0);
+    if (!isNaN(parsedvalue) && parsedvalue > 0 && parsedvalue < 5) {
+      setChatMember(parsedvalue);
     }
+  };
+
+  const validateInputs = (): boolean => {
+    if (chatName === "" || chatName.length < 2 || chatName.length > 10) {
+      alert("방 이름은 2자 이상 10자 이하로 설정해주세요.");
+      return false;
+    }
+    if (chatMember < 2 || chatMember > 5) {
+      alert("방 인원은 2명 이상 5명 이하로 설정해주세요.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleCreateChat = () => {
+    if (validateInputs()) {
+      // 방 생성
+      const request = indexedDB.open("chat", 2);
+
+      request.onupgradeneeded = (event: any) => {
+        const db = event.target.result;
+        const objectStore = db.createObjectStore("chat", {
+          keyPath: "id",
+        });
+        objectStore.createIndex("name", "name", { unique: false });
+        objectStore.createIndex("member", "member", { unique: false });
+      };
+    }
+    //
   };
 
   return (
@@ -79,30 +96,9 @@ const AddChatDialog = (props: AddChatDialogProps) => {
         padding={16}
         justifyContent={"flex-end"}
       >
-        <Button
-          variant={"text"}
-          color={"warn"}
-          width={86}
-          height={48}
-          style={{
-            margin: 8,
-          }}
-        >
+        <Button height={48} onClick={handleCreateChat}>
           <Typography bold fontSize={18}>
-            {"삭제"}
-          </Typography>
-        </Button>
-        <Button
-          variant={"text"}
-          color={"main"}
-          width={86}
-          height={48}
-          style={{
-            margin: 8,
-          }}
-        >
-          <Typography bold fontSize={18}>
-            {"수정"}
+            {"방 생성"}
           </Typography>
         </Button>
       </Container>

@@ -32,6 +32,7 @@ export default function Home() {
     console.log("# check : ", _data);
     if (_data.result === "success") {
       console.log("success");
+      sessionStorage.setItem("apiKey", apiKey);
       // handleFetchApi();
       router.push("/lobby");
     } else {
