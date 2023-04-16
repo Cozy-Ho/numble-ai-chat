@@ -85,8 +85,6 @@ const TextField = (props: TextFieldProps) => {
     onFocus(e);
   };
 
-  console.log("# check here : ", height);
-
   return (
     <StyledFieldSet focus={focus} width={width} height={height} error={error}>
       <StyledInputField
