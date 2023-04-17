@@ -6,7 +6,6 @@ export interface ButtonProps extends React.ComponentProps<"button"> {
   variant?: "text" | "icon";
   width?: React.CSSProperties["width"];
   height?: React.CSSProperties["height"];
-  onClick?: () => void;
 }
 
 const StyledButton = styled("button")<{

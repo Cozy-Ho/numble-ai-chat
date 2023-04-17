@@ -1,10 +1,8 @@
+import Chat from "@/components/Chat";
+
 const ChatRoom = () => {
   //
-  return (
-    <>
-      <div>This is chat room</div>
-    </>
-  );
+  return <Chat />;
 };
 
 export default ChatRoom;

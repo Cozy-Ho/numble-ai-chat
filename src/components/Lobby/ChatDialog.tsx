@@ -5,6 +5,9 @@ import DB from "@/utils/DB";
 
 type AddChatDialogProps = {
   open: boolean;
+  chatName?: string;
+  chatMember?: number;
+  type?: "add" | "edit";
   onClose: () => void;
 };
 
@@ -13,11 +16,17 @@ type InputError = {
   chatMember: boolean;
 };
 
-const AddChatDialog = (props: AddChatDialogProps) => {
-  const { open, onClose } = props;
+const ChatDialog = (props: AddChatDialogProps) => {
+  const {
+    open,
+    type = "add",
+    chatName: _chatName,
+    chatMember: _chatMember,
+    onClose,
+  } = props;
 
-  const [chatName, setChatName] = useState<string>("");
-  const [chatMember, setChatMember] = useState<number>(0);
+  const [chatName, setChatName] = useState<string>(_chatName ?? "");
+  const [chatMember, setChatMember] = useState<number>(_chatMember ?? 0);
   const [inputError, setInputError] = useState<InputError>({
     chatName: false,
     chatMember: false,
@@ -43,7 +52,7 @@ const AddChatDialog = (props: AddChatDialogProps) => {
       setChatMember(0);
       return;
     }
-    if (!isNaN(parsedvalue) && parsedvalue > 0 && parsedvalue < 5) {
+    if (!isNaN(parsedvalue) && parsedvalue > 0 && parsedvalue < 6) {
       setChatMember(parsedvalue);
     }
   };
@@ -70,20 +79,65 @@ const AddChatDialog = (props: AddChatDialogProps) => {
     async (name: string, count: number) => {
       if (validateInputs()) {
         // 방 생성
-        if (!indexedDB) {
-          alert("indexedDB를 지원하지 않는 브라우저입니다.");
-          return;
-        }
-        const db = await new DB(indexedDB);
+        const db = new DB();
+        await db.open();
         const _result = await db.createChatRoom({
-          id: "test",
-          name: name,
-          memberCount: count + 1,
+          id: name,
+          memberCount: count,
         });
+        if (_result.result) {
+          // success
+          onClose();
+        } else {
+          // duplicate key
+          if (_result.message === "key already exist") {
+            alert("이미 존재하는 방 이름입니다.");
+            return;
+          }
+          alert(`방 생성에 실패했습니다.\n${_result.message}`);
+        }
+        console.log("# createChatRoom : ", _result);
       }
-      //
     },
-    [validateInputs],
+    [validateInputs, onClose],
+  );
+
+  const handleRemoveChat = useCallback(
+    async (name: string) => {
+      const db = new DB();
+      await db.open();
+      const _result = await db.removeChatRoom(name);
+      if (_result.result) {
+        // success
+        onClose();
+      } else {
+        alert(`방 삭제에 실패했습니다.\n${_result.message}`);
+      }
+      console.log("# removeChatRoom : ", _result);
+    },
+    [onClose],
+  );
+
+  const handleEditChat = useCallback(
+    async (name: string, count: number) => {
+      if (validateInputs()) {
+        // 방 수정
+        const db = new DB();
+        await db.open();
+        const _result = await db.updateChatRoom({
+          id: name,
+          memberCount: count,
+        });
+        if (_result.result) {
+          // success
+          onClose();
+        } else {
+          alert(`방 수정에 실패했습니다.\n${_result.message}`);
+        }
+        console.log("# editChatRoom : ", _result);
+      }
+    },
+    [validateInputs, onClose],
   );
 
   return (
@@ -100,6 +154,7 @@ const AddChatDialog = (props: AddChatDialogProps) => {
           <Typography>{"방 이름"}</Typography>
           <TextField
             width={"100%"}
+            disabled={type === "edit"}
             error={inputError.chatName}
             height={48}
             textDirection={"right"}
@@ -135,17 +190,44 @@ const AddChatDialog = (props: AddChatDialogProps) => {
         padding={16}
         justifyContent={"flex-end"}
       >
-        <Button
-          height={48}
-          onClick={() => handleCreateChat(chatName, chatMember)}
-        >
-          <Typography bold fontSize={18}>
-            {"방 생성"}
-          </Typography>
-        </Button>
+        <>
+          {type === "add" && (
+            <Button
+              height={48}
+              onClick={() => handleCreateChat(chatName, chatMember)}
+            >
+              <Typography bold fontSize={18}>
+                {"방 생성"}
+              </Typography>
+            </Button>
+          )}
+          {type === "edit" && (
+            <Container>
+              <Button
+                height={48}
+                width={82}
+                color={"warn"}
+                onClick={() => handleRemoveChat(chatName)}
+              >
+                <Typography bold fontSize={18}>
+                  {"삭제"}
+                </Typography>
+              </Button>
+              <Button
+                height={48}
+                width={82}
+                onClick={() => handleEditChat(chatName, chatMember)}
+              >
+                <Typography bold fontSize={18}>
+                  {"수정"}
+                </Typography>
+              </Button>
+            </Container>
+          )}
+        </>
       </Container>
     </Dialog>
   );
 };
 
-export default AddChatDialog;
+export default ChatDialog;

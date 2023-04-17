@@ -1,30 +1,53 @@
-type CreateChatRoomParams = {
+type ChatRoom = {
   id: string;
-  name: string;
   memberCount: number;
 };
 
+type Chat = {
+  id: string;
+  roomId: string;
+  role: string;
+  message: string;
+  name: string;
+  time: Date;
+};
+
+type CreateChatRoomParams = ChatRoom;
+type CreateChatParams = Chat;
+
+type Response = {
+  result: boolean;
+  data?: any;
+  message?: string;
+};
+
 class DB {
-  private request: IDBOpenDBRequest;
   private db: IDBDatabase | null = null;
 
-  constructor(factory: IDBFactory) {
-    this.request = factory.open("numbleAI");
-    this.db = this.request.result;
-
-    this.init();
+  constructor() {
+    // this.factory = factory;
   }
 
-  private async init(): Promise<boolean> {
+  public async open(): Promise<Response> {
     return new Promise((resolve, reject) => {
+      if (!window.indexedDB) {
+        window.alert("indexedDB를 지원하지 않는 브라우저입니다.");
+        resolve({ result: false, message: "not supported indexedDB" });
+      }
+      const request = window.indexedDB.open("numbleAI");
+
       // open database named "numbleAI"
 
-      if (!this.request) return;
+      request.onsuccess = (event: Event) => {
+        console.log("done!");
+        this.db = request.result;
+        resolve({ result: true, message: "success" });
+      };
 
       // If there has no DB named "numbeAI", create and initialize it.
-      this.request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        console.log("# db inintalize called");
-        this.db = this.request.result;
+      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+        console.log("# db initialize called");
+        this.db = request.result;
 
         const ChatRoom = this.db.createObjectStore("ChatRoom", {
           keyPath: "id",
@@ -38,25 +61,19 @@ class DB {
         Chat.createIndex("roomId", "roomId", { unique: false });
       };
 
-      this.request.onsuccess = (event: Event) => {
-        console.log("done!");
-        this.db = this.request.result;
-        resolve(true);
-      };
-
-      this.request.onerror = (event: Event) => {
+      request.onerror = (event: Event) => {
         console.log("# db error");
-        resolve(false);
+        resolve({ result: false, message: "error while opening db" });
       };
     });
   }
 
   public createChatRoom = async (
     params: CreateChatRoomParams,
-  ): Promise<boolean> => {
+  ): Promise<Response> => {
     return new Promise((resolve, reject) => {
-      const { id, name, memberCount } = params;
-      console.log("# check ", this.db);
+      const { id, memberCount } = params;
+      console.log("# check ", params);
       if (!this.db) {
         console.log("# error");
         throw new Error("DB not initialized");
@@ -66,19 +83,174 @@ class DB {
       const store = transaction.objectStore("ChatRoom");
       const request = store.add({
         id: id,
-        name: name,
         memberCount: memberCount,
       });
       request.onsuccess = (event: Event) => {
-        resolve(true);
+        resolve({ result: true, message: "create chat-room success" });
       };
 
       request.onerror = (event: Event) => {
-        console.log("# db error", JSON.stringify(event));
-        resolve(false);
+        const error = (event.target as IDBRequest).error;
+        if (error && error.name === "ConstraintError") {
+          console.log("# key already exist");
+          resolve({ result: false, message: "key already exist" });
+        }
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while creating chat-room" });
+        }
+      };
+    });
+  };
+
+  public getAllChtRoom = async (): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["ChatRoom"], "readonly");
+      const store = transaction.objectStore("ChatRoom");
+      const request = store.getAll();
+      request.onsuccess = (event: Event) => {
+        resolve({
+          result: true,
+          message: "get all chat-room success",
+          data: request.result,
+        });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while getting chat-room" });
+        }
+      };
+    });
+  };
+
+  public removeChatRoom = async (id: string): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["ChatRoom"], "readwrite");
+      const store = transaction.objectStore("ChatRoom");
+      const request = store.delete(id);
+      request.onsuccess = (event: Event) => {
+        resolve({ result: true, message: "remove chat-room success" });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while removing chat-room" });
+        }
+      };
+    });
+  };
+
+  public updateChatRoom = async (
+    params: CreateChatRoomParams,
+  ): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      const { id, memberCount } = params;
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["ChatRoom"], "readwrite");
+      const store = transaction.objectStore("ChatRoom");
+      const request = store.put({ id: id, memberCount: memberCount });
+
+      request.onsuccess = (event: Event) => {
+        resolve({ result: true, message: "update chat-room success" });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while updating chat-room" });
+        }
+      };
+    });
+  };
+
+  public getChatList = async (roomId: string): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["Chat"], "readonly");
+      const store = transaction.objectStore("Chat");
+      const request = store.getAll(roomId);
+
+      request.onsuccess = (event: Event) => {
+        const result = request.result.filter(
+          (chat: Chat) => chat.roomId === roomId,
+        );
+        resolve({
+          result: true,
+          message: "get chat-list success",
+          data: result,
+        });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while getting chat-list" });
+        }
+      };
+    });
+  };
+
+  public createChat = async (params: CreateChatParams): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      const { roomId, id, message, name } = params;
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["Chat"], "readwrite");
+      const store = transaction.objectStore("Chat");
+      const request = store.add({
+        roomId: roomId,
+        id: id,
+        message: message,
+        name: name,
+        time: new Date(),
+      });
+
+      request.onsuccess = (event: Event) => {
+        resolve({ result: true, message: "create chat success" });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error && error.name === "ConstraintError") {
+          console.log("# key already exist");
+          resolve({ result: false, message: "key already exist" });
+        }
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while creating chat" });
+        }
       };
     });
   };
 }
 
 export default DB;
+export type { Chat, ChatRoom };

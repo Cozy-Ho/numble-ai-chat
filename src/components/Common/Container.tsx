@@ -1,4 +1,5 @@
 import styled from "@emotion/styled";
+import { forwardRef } from "react";
 
 interface ContainerProps extends React.ComponentProps<"div"> {
   children: React.ReactNode;
@@ -34,10 +35,15 @@ const StyledContainer = styled("div")<ContainerProps>(
   }),
 );
 
-const Container = (props: ContainerProps) => {
+const Container = forwardRef<HTMLDivElement, ContainerProps>((props, ref) => {
   const { children, ...rest } = props;
   //
-  return <StyledContainer {...rest}>{children}</StyledContainer>;
-};
+  return (
+    <StyledContainer ref={ref} {...rest}>
+      {children}
+    </StyledContainer>
+  );
+});
 
+Container.displayName = "Container";
 export default Container;
