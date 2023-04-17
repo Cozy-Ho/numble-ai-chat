@@ -4,6 +4,7 @@ import Divider from "../Common/Divider";
 import { MoreIcon } from "../Icons";
 import { forwardRef, useEffect, useRef, useState } from "react";
 
+// PopOver 컴포넌트
 type ChatRoomPopoverProps = {
   open: boolean;
   children: React.ReactNode;
@@ -24,6 +25,7 @@ const ChatRoomPopover = forwardRef<HTMLDivElement, ChatRoomPopoverProps>(
 );
 ChatRoomPopover.displayName = "ChatRoomPopover";
 
+// 채팅 리스트 컴포넌트
 type ChatRoomProps = {
   chat: ChatRoom;
   handleClickChatRoom: (id: string) => void;
@@ -123,39 +125,6 @@ const ChatRoomContainer = (props: ChatRoomProps) => {
             </Button>
           </>
         </ChatRoomPopover>
-        {/* {!openButtons && (
-          <Button
-            variant={"icon"}
-            onClick={e => {
-              e.stopPropagation();
-              setOpenButtons(true);
-            }}
-          >
-            <MoreIcon />
-          </Button>
-        )}
-        {openButtons && (
-          <Container
-            onBlur={() => {
-              setOpenButtons(false);
-            }}
-          >
-            <Button
-              variant={"text"}
-              color={"main"}
-              width={82}
-              onClick={e => {
-                e.stopPropagation();
-                handleClickEditChat({
-                  id: chat.id,
-                  memberCount: chat.memberCount,
-                });
-              }}
-            >
-              {"수정"}
-            </Button>
-          </Container>
-        )} */}
       </Container>
       <Divider direction={"row"} size={"100%"} />
     </Container>

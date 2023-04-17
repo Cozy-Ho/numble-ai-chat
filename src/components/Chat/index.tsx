@@ -19,7 +19,10 @@ const Chat = () => {
       const _result = await db.getChatList(id as string);
       if (_result.result) {
         console.log("success", _result.data);
-        setChatList(_result.data);
+        const sorted = _result.data.sort((a: Chat, b: Chat) => {
+          return a.time.getTime() - b.time.getTime();
+        });
+        setChatList(sorted);
       }
     }
   }, [id]);
@@ -33,13 +36,19 @@ const Chat = () => {
   }, [fetchChat]);
 
   return (
-    <MainLayout>
+    <MainLayout
+      style={{
+        paddingTop: 60,
+        paddingBottom: 60,
+      }}
+    >
       <Container
         direction={"column"}
         fullWidth
         fullHeight
         style={{
           position: "relative",
+          minHeight: 540,
         }}
       >
         <Container
@@ -47,6 +56,12 @@ const Chat = () => {
           fullWidth
           alignItems={"center"}
           padding={12}
+          style={{
+            position: "fixed",
+            top: 0,
+            height: 60,
+            width: "100%",
+          }}
         >
           <Button variant={"icon"} width={24} onClick={handleClickBack}>
             <BackIcon />
@@ -54,8 +69,25 @@ const Chat = () => {
           <Typography fontSize={20}>{id}</Typography>
         </Container>
         <Divider direction={"row"} size={"100%"} />
-        <div>Chat</div>
-        <div>{id}</div>
+        <Container
+          direction={"column"}
+          padding={8}
+          style={{
+            overflowY: "auto",
+          }}
+        >
+          {"CHAT"}
+        </Container>
+        <Container
+          width={"100%"}
+          height={60}
+          style={{
+            position: "fixed",
+            bottom: 0,
+          }}
+        >
+          {"FOOTER"}
+        </Container>
       </Container>
     </MainLayout>
   );
