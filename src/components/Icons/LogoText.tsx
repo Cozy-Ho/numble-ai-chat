@@ -1,4 +1,6 @@
-const LogoText = () => {
+import { IconProps } from "./type";
+
+const LogoText = (props: IconProps) => {
   return (
     <svg
       width="125"
@@ -6,6 +8,7 @@ const LogoText = () => {
       viewBox="0 0 125 19"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <g clipPath="url(#clip0_0_129)">
         <path

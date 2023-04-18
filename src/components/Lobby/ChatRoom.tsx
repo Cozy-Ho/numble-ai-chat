@@ -80,7 +80,7 @@ const ChatRoomContainer = (props: ChatRoomProps) => {
             overflow: "hidden",
           }}
         >
-          <Typography fontSize={"24"}>{chat.id}</Typography>
+          <Typography fontSize={"24"}>{chat.name}</Typography>
         </Container>
         <ChatRoomPopover
           open={open}
@@ -106,6 +106,7 @@ const ChatRoomContainer = (props: ChatRoomProps) => {
                 e.stopPropagation();
                 handleClickEditChat({
                   id: chat.id,
+                  name: chat.name,
                   memberCount: chat.memberCount,
                 });
               }}

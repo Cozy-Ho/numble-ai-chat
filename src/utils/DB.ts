@@ -1,6 +1,8 @@
 type ChatRoom = {
   id: string;
+  name: string;
   memberCount: number;
+  memberList?: number[]; // member 들의 프로필 이미지 유지를 위해
 };
 
 type Chat = {
@@ -8,12 +10,12 @@ type Chat = {
   roomId: string;
   role: string;
   message: string;
-  name: string;
+  name: number;
   time: Date;
 };
 
 type CreateChatRoomParams = ChatRoom;
-type CreateChatParams = Chat;
+type CreateChatParams = Omit<Chat, "time">;
 
 type Response = {
   result: boolean;
@@ -53,6 +55,7 @@ class DB {
           keyPath: "id",
         });
         ChatRoom.createIndex("id", "id", { unique: true });
+        ChatRoom.createIndex("name", "name", { unique: true });
 
         const Chat = this.db.createObjectStore("Chat", {
           keyPath: "id",
@@ -72,7 +75,7 @@ class DB {
     params: CreateChatRoomParams,
   ): Promise<Response> => {
     return new Promise((resolve, reject) => {
-      const { id, memberCount } = params;
+      const { id, name, memberCount, memberList } = params;
       console.log("# check ", params);
       if (!this.db) {
         console.log("# error");
@@ -83,7 +86,9 @@ class DB {
       const store = transaction.objectStore("ChatRoom");
       const request = store.add({
         id: id,
+        name: name,
         memberCount: memberCount,
+        memberList: memberList || [],
       });
       request.onsuccess = (event: Event) => {
         resolve({ result: true, message: "create chat-room success" });
@@ -103,7 +108,37 @@ class DB {
     });
   };
 
-  public getAllChtRoom = async (): Promise<Response> => {
+  public getChatRoom = async (id: string): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["ChatRoom"], "readonly");
+      const store = transaction.objectStore("ChatRoom");
+
+      const request = store.get(id);
+
+      request.onsuccess = (event: Event) => {
+        resolve({
+          result: true,
+          message: "get chat-room success",
+          data: request.result,
+        });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while getting chat-room" });
+        }
+      };
+    });
+  };
+
+  public getAllChatRoom = async (): Promise<Response> => {
     return new Promise((resolve, reject) => {
       if (!this.db) {
         console.log("# error");
@@ -155,6 +190,37 @@ class DB {
     });
   };
 
+  public removeAllChat = async (id: string): Promise<Response> => {
+    return new Promise((resolve, reject) => {
+      if (!this.db) {
+        console.log("# error");
+        throw new Error("DB not initialized");
+      }
+
+      const transaction = this.db.transaction(["Chat"], "readwrite");
+      const store = transaction.objectStore("Chat");
+
+      const index = store.index("roomId");
+      // TODO: remove all chat with roomId
+
+      const request = index.openCursor(id);
+      request.onsuccess = (event: Event) => {
+        const cursor = resolve({
+          result: true,
+          message: "remove all chat success",
+        });
+      };
+
+      request.onerror = (event: Event) => {
+        const error = (event.target as IDBRequest).error;
+        if (error) {
+          console.log("# error", error);
+          resolve({ result: false, message: "error while removing all chat" });
+        }
+      };
+    });
+  };
+
   public updateChatRoom = async (
     params: CreateChatRoomParams,
   ): Promise<Response> => {
@@ -192,7 +258,11 @@ class DB {
 
       const transaction = this.db.transaction(["Chat"], "readonly");
       const store = transaction.objectStore("Chat");
-      const request = store.getAll(roomId);
+
+      // Get the index for the "roomId" key
+      const index = store.index("roomId");
+
+      const request = index.getAll(roomId);
 
       request.onsuccess = (event: Event) => {
         const result = request.result.filter(
@@ -217,7 +287,7 @@ class DB {
 
   public createChat = async (params: CreateChatParams): Promise<Response> => {
     return new Promise((resolve, reject) => {
-      const { roomId, id, message, name } = params;
+      const { roomId, id, message, name, role } = params;
       if (!this.db) {
         console.log("# error");
         throw new Error("DB not initialized");
@@ -230,6 +300,7 @@ class DB {
         id: id,
         message: message,
         name: name,
+        role: role,
         time: new Date(),
       });
 

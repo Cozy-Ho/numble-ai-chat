@@ -2,6 +2,7 @@ type Props = {
   color?: string;
   width?: React.CSSProperties["width"];
   height?: React.CSSProperties["height"];
+  onClick?: () => void;
 };
 
 const Logo = (props: Props) => {

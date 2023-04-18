@@ -1,4 +1,6 @@
-const CloseIcon = () => {
+import { IconProps } from "./type";
+
+const CloseIcon = (props: IconProps) => {
   //
   return (
     <svg
@@ -7,6 +9,7 @@ const CloseIcon = () => {
       viewBox="0 0 47 47"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         d="M35.1113 12.0215L12.1113 35.0215"

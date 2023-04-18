@@ -1,4 +1,6 @@
-const AddIcon = () => {
+import { IconProps } from "./type";
+
+const AddIcon = (props: IconProps) => {
   //
   return (
     <svg
@@ -7,6 +9,7 @@ const AddIcon = () => {
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...props}
     >
       <path
         d="M12 5V19"

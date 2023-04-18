@@ -1,12 +1,12 @@
 import { useCallback, useState } from "react";
 import { Button, Container, TextField, Typography } from "../Common";
 import Dialog from "../Common/Dialog";
-import DB from "@/utils/DB";
+import DB, { ChatRoom } from "@/utils/DB";
+import { v4 } from "uuid";
 
 type AddChatDialogProps = {
   open: boolean;
-  chatName?: string;
-  chatMember?: number;
+  data?: ChatRoom;
   type?: "add" | "edit";
   onClose: () => void;
 };
@@ -17,21 +17,16 @@ type InputError = {
 };
 
 const ChatDialog = (props: AddChatDialogProps) => {
-  const {
-    open,
-    type = "add",
-    chatName: _chatName,
-    chatMember: _chatMember,
-    onClose,
-  } = props;
+  const { open, type = "add", data = null, onClose } = props;
 
-  const [chatName, setChatName] = useState<string>(_chatName ?? "");
-  const [chatMember, setChatMember] = useState<number>(_chatMember ?? 0);
+  const [chatName, setChatName] = useState<string>(data ? data.name : "");
+  const [chatMember, setChatMember] = useState<number>(
+    data ? data.memberCount : 0,
+  );
   const [inputError, setInputError] = useState<InputError>({
     chatName: false,
     chatMember: false,
   });
-  //
 
   const handleChangeChatName = (e: React.ChangeEvent<HTMLInputElement>) => {
     setChatName(e.target.value);
@@ -82,8 +77,14 @@ const ChatDialog = (props: AddChatDialogProps) => {
         const db = new DB();
         await db.open();
         const _result = await db.createChatRoom({
-          id: name,
+          id: v4(),
+          name: name,
           memberCount: count,
+          // 사용자를 제외한 나머지 랜덤한 멤버. 프로필 사진 유지를 위한 용도로 1~7 사이의 숫자로 임의 지정합니다.
+          memberList: Array.from(
+            { length: count - 1 },
+            () => Math.floor(Math.random() * 7) + 1,
+          ),
         });
         if (_result.result) {
           // success
@@ -119,13 +120,14 @@ const ChatDialog = (props: AddChatDialogProps) => {
   );
 
   const handleEditChat = useCallback(
-    async (name: string, count: number) => {
+    async (id: string, name: string, count: number) => {
       if (validateInputs()) {
         // 방 수정
         const db = new DB();
         await db.open();
         const _result = await db.updateChatRoom({
-          id: name,
+          id: id,
+          name: name,
           memberCount: count,
         });
         if (_result.result) {
@@ -201,7 +203,7 @@ const ChatDialog = (props: AddChatDialogProps) => {
               </Typography>
             </Button>
           )}
-          {type === "edit" && (
+          {type === "edit" && data && (
             <Container>
               <Button
                 height={48}
@@ -216,7 +218,7 @@ const ChatDialog = (props: AddChatDialogProps) => {
               <Button
                 height={48}
                 width={82}
-                onClick={() => handleEditChat(chatName, chatMember)}
+                onClick={() => handleEditChat(data.id, chatName, chatMember)}
               >
                 <Typography bold fontSize={18}>
                   {"수정"}
