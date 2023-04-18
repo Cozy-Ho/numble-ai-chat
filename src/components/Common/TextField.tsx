@@ -9,6 +9,7 @@ interface TextFieldProps
   error?: string | boolean;
   placeholder?: string;
   textDirection?: "left" | "right";
+  endIcon?: React.ReactNode;
   onClick?: () => void;
   onFocus?: (e: React.FocusEvent<HTMLInputElement, Element>) => void;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -23,7 +24,6 @@ const StyledFieldSet = styled("fieldset")<{
   error?: string | boolean;
 }>(({ theme, width = "100%", height = "100%", focus, error = false }) => ({
   display: "flex",
-  flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
   padding: "4px 8px",
@@ -76,6 +76,7 @@ const TextField = (props: TextFieldProps) => {
     onBlur = () => {},
     textDirection = "left",
     color,
+    endIcon,
     ...rest
   } = props;
   const [focus, setFocus] = React.useState(false);
@@ -98,6 +99,7 @@ const TextField = (props: TextFieldProps) => {
         onChange={onChange}
         {...rest}
       />
+      {endIcon && <>{endIcon}</>}
     </StyledFieldSet>
   );
 };

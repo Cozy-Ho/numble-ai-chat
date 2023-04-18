@@ -1,7 +1,13 @@
 import { useRouter } from "next/router";
-import { Button, Container, MainLayout, Typography } from "../Common";
+import {
+  Button,
+  Container,
+  MainLayout,
+  TextField,
+  Typography,
+} from "../Common";
 import Divider from "../Common/Divider";
-import { BackIcon } from "../Icons";
+import { AddIcon, BackIcon } from "../Icons";
 import { useCallback, useEffect, useState } from "react";
 import DB, { Chat } from "@/utils/DB";
 
@@ -81,12 +87,13 @@ const Chat = () => {
         <Container
           width={"100%"}
           height={60}
+          padding={8}
           style={{
             position: "fixed",
             bottom: 0,
           }}
         >
-          {"FOOTER"}
+          <TextField endIcon={<AddIcon />} />
         </Container>
       </Container>
     </MainLayout>
