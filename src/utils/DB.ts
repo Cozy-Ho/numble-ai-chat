@@ -205,10 +205,19 @@ class DB {
 
       const request = index.openCursor(id);
       request.onsuccess = (event: Event) => {
-        const cursor = resolve({
-          result: true,
-          message: "remove all chat success",
-        });
+        const cursor = request.result;
+        if (cursor) {
+          cursor.delete();
+          cursor.continue();
+        } else {
+          transaction.oncomplete = () => {
+            resolve({ result: true, message: "remove all chat success" });
+          };
+        }
+        // const cursor = resolve({
+        //   result: true,
+        //   message: "remove all chat success",
+        // });
       };
 
       request.onerror = (event: Event) => {

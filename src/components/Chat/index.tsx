@@ -67,75 +67,81 @@ const Chat = () => {
           return a.time.getTime() - b.time.getTime();
         });
         setChatList(sorted);
+        return sorted;
       }
     }
   }, [id]);
 
-  const fetchReply = useCallback(async () => {
-    if (!chatRoom) return;
-    const key = sessionStorage.getItem("apiKey") || null;
+  const fetchReply = useCallback(
+    async (_chat: Chat[]) => {
+      if (!chatRoom) return;
+      const key = sessionStorage.getItem("apiKey") || null;
 
-    // query 용 메세지 포맷
-    const messages: ChatCompletionRequestMessage[] = chatList.map(chat => {
-      return {
-        role: chat.role === "user" ? "user" : "assistant",
-        name: chat.name.toString(),
-        content: chat.message,
-      };
-    });
-    const _result = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        apiKey: key,
-        messages: messages,
-      }),
-    });
+      // query 용 메세지 포맷
+      const messages: ChatCompletionRequestMessage[] = _chat.map(chat => {
+        return {
+          role: chat.role === "user" ? "user" : "assistant",
+          name: chat.name.toString(),
+          content: chat.message,
+        };
+      });
+      if (messages.length === 0) return;
 
-    const _data = await _result.json();
-    if (_data.error) {
-      console.log(_data.error);
-      return;
-    }
+      const _result = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          apiKey: key,
+          messages: messages,
+        }),
+      });
 
-    const setWhosReply: number = (() => {
-      if (chatRoom.memberList && chatRoom.memberList.length > 1) {
-        // 마지막 채팅이 사용자가 한 것이면 AI들 중 랜덤으로 선택
-        if (chatList[chatList.length - 1].role === "user") {
-          return chatRoom.memberList[
-            Math.floor(Math.random() * chatRoom.memberList.length)
-          ];
-        } else {
-          // 마지막 채팅이 사용자가 아니면 마지막 채팅을 제외한 AI 중 랜덤으로 선택
-          const _exceptLastOne = chatRoom.memberList.filter(
-            item => item !== chatList[chatList.length - 1].name,
-          );
-          return _exceptLastOne[
-            Math.floor(Math.random() * _exceptLastOne.length)
-          ];
-        }
+      const _data = await _result.json();
+      if (_data.error) {
+        console.log(_data.error);
+        return;
       }
-      return 0;
-    })();
 
-    // 채팅 추가
-    const db = new DB();
-    await db.open();
-    const _res = await db.createChat({
-      id: v4(),
-      roomId: id as string,
-      name: setWhosReply,
-      message: _data.result.content,
-      role: "assistant",
-    });
-    if (_res.result) {
-      await fetchChat();
-    } else {
-      console.log("fail to create chat");
-    }
-  }, [chatRoom, chatList, fetchChat, id]);
+      const setWhosReply: number = (() => {
+        if (chatRoom.memberList && chatRoom.memberList.length > 1) {
+          // 마지막 채팅이 사용자가 한 것이면 AI들 중 랜덤으로 선택
+          if (_chat[_chat.length - 1].role === "user") {
+            return chatRoom.memberList[
+              Math.floor(Math.random() * chatRoom.memberList.length)
+            ];
+          } else {
+            // 마지막 채팅이 사용자가 아니면 마지막 채팅을 제외한 AI 중 랜덤으로 선택
+            const _exceptLastOne = chatRoom.memberList.filter(
+              item => item !== _chat[_chat.length - 1].name,
+            );
+            return _exceptLastOne[
+              Math.floor(Math.random() * _exceptLastOne.length)
+            ];
+          }
+        }
+        return 0;
+      })();
+
+      // 채팅 추가
+      const db = new DB();
+      await db.open();
+      const _res = await db.createChat({
+        id: v4(),
+        roomId: id as string,
+        name: setWhosReply,
+        message: _data.result.content,
+        role: "assistant",
+      });
+      if (_res.result) {
+        await fetchChat();
+      } else {
+        console.log("fail to create chat");
+      }
+    },
+    [chatRoom, fetchChat, id],
+  );
 
   const handleClickBack = () => {
     router.replace("/lobby");
@@ -185,8 +191,10 @@ const Chat = () => {
       });
       if (_result.result) {
         setInputText("");
-        await fetchChat();
-        await fetchReply();
+        const _data = await fetchChat();
+        if (_data) {
+          await fetchReply(_data);
+        }
       } else {
         alert(_result.message);
       }
@@ -270,13 +278,15 @@ const Chat = () => {
             maxLength={100}
             value={inputText}
             onChange={e => setInputText(e.target.value)}
-            onKeyDown={e => {
-              if (e.key === "Enter" && inputText.length > 0) {
-                handleClickSend();
-              }
-            }}
             endIcon={
-              <Button variant={"icon"} onClick={handleClickSend}>
+              <Button
+                variant={"icon"}
+                onClick={e => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  handleClickSend();
+                }}
+              >
                 <SendIcon />
               </Button>
             }

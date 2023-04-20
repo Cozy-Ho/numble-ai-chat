@@ -18,8 +18,7 @@ export default async function handler(
   if (!req.body.apiKey) {
     res.status(500).json({
       error: {
-        message:
-          "OpenAI API key not configured, please follow instructions in README.md",
+        message: "OpenAI API key not configured, please login first",
       },
     });
     return;

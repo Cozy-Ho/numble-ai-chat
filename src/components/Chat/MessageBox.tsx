@@ -6,8 +6,9 @@ const StyledContainer = styled(Container)(({ theme }) => ({
   backgroundColor: theme.palette.gray,
   borderRadius: "10px",
   padding: 8,
-  maxWidth: "80%",
+  maxWidth: "70%",
   wordBreak: "break-word",
+  direction: "ltr",
 }));
 
 type MessageBoxProps = {
