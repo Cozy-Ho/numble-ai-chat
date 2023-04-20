@@ -6,7 +6,6 @@ import {
   TextField,
   Typography,
   Divider,
-  Loading,
 } from "../Common";
 import { BackIcon, SendIcon } from "../Icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -16,7 +15,7 @@ import { v4 } from "uuid";
 import { ChatCompletionRequestMessage } from "openai";
 
 // 사용자 입력을 기다리는 최대 시간
-const MAX_COUNT = 5;
+const MAX_COUNT = 7;
 
 const Chat = () => {
   const router = useRouter();
@@ -33,14 +32,13 @@ const Chat = () => {
 
   // for timer
   const [count, setCount] = useState(MAX_COUNT);
-  const timeId = useRef<NodeJS.Timeout | null>(null);
   const countTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const messageBoxRef = useRef<HTMLDivElement>(null);
 
   const { id } = router.query;
 
   // fetch ChatRoom data.
   useEffect(() => {
-    setLoading(true);
     if (id) {
       const db = new DB();
       db.open().then(() => {
@@ -50,7 +48,6 @@ const Chat = () => {
           } else {
             setChatRoom(null);
           }
-          setLoading(false);
         });
       });
     }
@@ -75,6 +72,7 @@ const Chat = () => {
   const fetchReply = useCallback(
     async (_chat: Chat[]) => {
       if (!chatRoom) return;
+      setLoading(true);
       const key = sessionStorage.getItem("apiKey") || null;
 
       // query 용 메세지 포맷
@@ -85,7 +83,6 @@ const Chat = () => {
           content: chat.message,
         };
       });
-      if (messages.length === 0) return;
 
       const _result = await fetch("/api/chat", {
         method: "POST",
@@ -101,24 +98,32 @@ const Chat = () => {
       const _data = await _result.json();
       if (_data.error) {
         console.log(_data.error);
+        // API error => 자동응답 중지
+        setAutoReply(false);
+        setLoading(false);
         return;
       }
 
       const setWhosReply: number = (() => {
-        if (chatRoom.memberList && chatRoom.memberList.length > 1) {
-          // 마지막 채팅이 사용자가 한 것이면 AI들 중 랜덤으로 선택
-          if (_chat[_chat.length - 1].role === "user") {
-            return chatRoom.memberList[
-              Math.floor(Math.random() * chatRoom.memberList.length)
-            ];
-          } else {
-            // 마지막 채팅이 사용자가 아니면 마지막 채팅을 제외한 AI 중 랜덤으로 선택
-            const _exceptLastOne = chatRoom.memberList.filter(
-              item => item !== _chat[_chat.length - 1].name,
-            );
-            return _exceptLastOne[
-              Math.floor(Math.random() * _exceptLastOne.length)
-            ];
+        if (chatRoom.memberList) {
+          if (chatRoom.memberList.length > 1) {
+            // 마지막 채팅이 사용자가 한 것이면 AI들 중 랜덤으로 선택
+            if (_chat[_chat.length - 1].role === "user") {
+              return chatRoom.memberList[
+                Math.floor(Math.random() * chatRoom.memberList.length)
+              ];
+            } else {
+              // 마지막 채팅이 사용자가 아니면 마지막 채팅을 제외한 AI 중 랜덤으로 선택
+              const _exceptLastOne = chatRoom.memberList.filter(
+                item => item !== _chat[_chat.length - 1].name,
+              );
+              return _exceptLastOne[
+                Math.floor(Math.random() * _exceptLastOne.length)
+              ];
+            }
+          }
+          if (chatRoom.memberList.length < 2) {
+            return chatRoom.memberList[0];
           }
         }
         return 0;
@@ -139,6 +144,7 @@ const Chat = () => {
       } else {
         console.log("fail to create chat");
       }
+      setLoading(false);
     },
     [chatRoom, fetchChat, id],
   );
@@ -149,13 +155,20 @@ const Chat = () => {
 
   // 사용자 입력을 기다리는 시간을 초기화
   const onResetTimer = useCallback(() => {
-    if (timeId.current) clearTimeout(timeId.current);
-
-    timeId.current = setTimeout(() => {
-      timeId.current = null;
-      setCount(MAX_COUNT);
-    }, MAX_COUNT);
+    console.log("reset timer!");
+    setCount(MAX_COUNT);
   }, []);
+
+  const fetchAutoReply = useCallback(async () => {
+    if (loading) return;
+    // 마지막 채팅이 사용자가 보낸 것 이라면, 자동응답이 아님
+    if (chatList[chatList.length - 1].role === "user") {
+      onResetTimer();
+      return;
+    }
+    await fetchReply(chatList);
+    onResetTimer();
+  }, [fetchReply, chatList, onResetTimer, loading]);
 
   // 타이머
   useEffect(() => {
@@ -168,16 +181,33 @@ const Chat = () => {
         if (count) {
           setCount(prev => prev - 1);
         } else {
-          // TODO: on timeout;
           console.log("TIMEOUT !! ");
+          fetchAutoReply();
         }
       }, 1000);
     };
     if (autoReply) {
       countDown();
     }
-  }, [count, autoReply]);
+  }, [count, fetchAutoReply, autoReply]);
 
+  useEffect(() => {
+    if (chatList.length > 0) {
+      if (chatRoom && chatRoom.memberCount > 2) {
+        // 맴버가 3명이상 && 사용자가 채팅을 보냈던 경우
+        setAutoReply(true);
+      }
+      if (messageBoxRef.current) {
+        messageBoxRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+          inline: "nearest",
+        });
+      }
+    }
+  }, [chatList, chatRoom]);
+
+  // 사용자가 채팅을 보내는 경우
   const handleClickSend = async () => {
     if (id) {
       const db = new DB();
@@ -208,13 +238,14 @@ const Chat = () => {
   // 사용자 입력 감지 이벤트 리스너
   useEffect(() => {
     window.addEventListener("click", onResetTimer, true);
+    window.addEventListener("scroll", onResetTimer, true);
     window.addEventListener("keydown", onResetTimer, true);
 
     return () => {
       window.removeEventListener("click", onResetTimer, true);
+      window.removeEventListener("scroll", onResetTimer, true);
       window.removeEventListener("keydown", onResetTimer, true);
 
-      if (timeId.current) clearTimeout(timeId.current);
       if (countTimerRef.current) clearTimeout(countTimerRef.current);
     };
   }, [onResetTimer]);
@@ -253,7 +284,6 @@ const Chat = () => {
           <Typography fontSize={20}>{chatRoom?.name || ""}</Typography>
         </Container>
         <Divider direction={"row"} size={"100%"} />
-        {loading && <Loading />}
         <Container
           direction={"column"}
           padding={8}
@@ -262,9 +292,23 @@ const Chat = () => {
           }}
         >
           {chatList.map((chat: Chat) => {
-            return <ChatBox key={chat.id} chatData={chat} />;
+            return (
+              <ChatBox ref={messageBoxRef} key={chat.id} chatData={chat} />
+            );
           })}
         </Container>
+        {loading && (
+          <Typography
+            fontSize={12}
+            paddingLeft={8}
+            style={{
+              position: "fixed",
+              bottom: 52,
+            }}
+          >
+            {"AI is typing..."}
+          </Typography>
+        )}
         <Container
           width={"100%"}
           height={60}
@@ -284,7 +328,9 @@ const Chat = () => {
                 onClick={e => {
                   e.stopPropagation();
                   e.preventDefault();
-                  handleClickSend();
+                  if (inputText.length > 0) {
+                    handleClickSend();
+                  }
                 }}
               >
                 <SendIcon />

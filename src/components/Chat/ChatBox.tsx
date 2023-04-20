@@ -2,17 +2,19 @@ import { Chat } from "@/utils/DB";
 import { Container, Typography } from "../Common";
 import ProfileImage from "./Profile";
 import MessageBox from "./MessageBox";
+import { forwardRef } from "react";
 
 type ChatBoxProps = {
   chatData: Chat;
 };
 
-const ChatBox = (props: ChatBoxProps) => {
+const ChatBox = forwardRef<HTMLDivElement, ChatBoxProps>((props, ref) => {
   const { chatData } = props;
 
   //
   return (
     <Container
+      ref={ref}
       padding={8}
       style={{
         wordBreak: "break-word",
@@ -34,6 +36,8 @@ const ChatBox = (props: ChatBoxProps) => {
       </Container>
     </Container>
   );
-};
+});
+
+ChatBox.displayName = "ChatBox";
 
 export default ChatBox;

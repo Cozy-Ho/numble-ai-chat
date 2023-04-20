@@ -15,6 +15,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Data>,
 ) {
+  console.log("API CALLED! ");
   if (!req.body.apiKey) {
     res.status(500).json({
       error: {

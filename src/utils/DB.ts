@@ -234,7 +234,7 @@ class DB {
     params: CreateChatRoomParams,
   ): Promise<Response> => {
     return new Promise((resolve, reject) => {
-      const { id, memberCount } = params;
+      const { id, name, memberCount } = params;
       if (!this.db) {
         console.log("# error");
         throw new Error("DB not initialized");
@@ -242,7 +242,11 @@ class DB {
 
       const transaction = this.db.transaction(["ChatRoom"], "readwrite");
       const store = transaction.objectStore("ChatRoom");
-      const request = store.put({ id: id, memberCount: memberCount });
+      const request = store.put({
+        id: id,
+        name: name,
+        memberCount: memberCount,
+      });
 
       request.onsuccess = (event: Event) => {
         resolve({ result: true, message: "update chat-room success" });
