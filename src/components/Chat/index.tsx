@@ -280,7 +280,14 @@ const Chat = () => {
           </Button>
           <Typography fontSize={20}>{chatRoom?.name || ""}</Typography>
         </Container>
-        <Divider direction={"row"} size={"100%"} />
+        <Divider
+          direction={"row"}
+          size={"100%"}
+          style={{
+            position: "fixed",
+            top: 60,
+          }}
+        />
         <Container
           direction={"column"}
           padding={8}
