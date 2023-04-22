@@ -56,6 +56,8 @@ export default function Home() {
       >
         <Container
           padding={92}
+          fullWidth
+          justifyContent={"center"}
           style={{
             marginTop: 64,
           }}

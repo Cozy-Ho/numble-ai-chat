@@ -155,7 +155,6 @@ const ChatDialog = (props: AddChatDialogProps) => {
         <Container direction={"column"} padding={8}>
           <Typography>{"방 이름"}</Typography>
           <TextField
-            width={"100%"}
             error={inputError.chatName}
             height={48}
             textDirection={"right"}

@@ -43,7 +43,7 @@ export default async function handler(
     const completion = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",
       messages: messageList,
-      max_tokens: 512,
+      max_tokens: 256,
     });
     console.log("# gpt says : ", completion.data);
     if (!completion.data.choices[0].message) {

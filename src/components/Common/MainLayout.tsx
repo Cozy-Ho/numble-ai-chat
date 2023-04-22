@@ -2,7 +2,8 @@ import styled from "@emotion/styled";
 
 const MainLayout = styled("div")({
   display: "flex",
-  width: 453.22,
+  minWidth: 453.22,
+  maxWidth: 1024,
   height: "100vh",
   flexDirection: "column",
   justifyContent: "center",

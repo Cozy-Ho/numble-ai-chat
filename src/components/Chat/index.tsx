@@ -259,7 +259,6 @@ const Chat = () => {
     >
       <Container
         direction={"column"}
-        fullWidth
         fullHeight
         style={{
           position: "relative",
@@ -268,14 +267,12 @@ const Chat = () => {
       >
         <Container
           justifyContent={"flex-start"}
-          fullWidth
           alignItems={"center"}
           padding={12}
           style={{
             position: "fixed",
             top: 0,
             height: 60,
-            width: "100%",
           }}
         >
           <Button variant={"icon"} width={24} onClick={handleClickBack}>
@@ -316,6 +313,7 @@ const Chat = () => {
           style={{
             position: "fixed",
             bottom: 0,
+            maxWidth: 960,
           }}
         >
           <TextField
