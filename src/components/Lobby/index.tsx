@@ -107,7 +107,14 @@ const Lobby = () => {
             <AddIcon />
           </Button>
         </Container>
-        <Divider direction={"row"} size={"100%"} />
+        <Divider
+          direction={"row"}
+          size={"100%"}
+          style={{
+            position: "fixed",
+            top: 60,
+          }}
+        />
         <Container
           direction={"column"}
           style={{
